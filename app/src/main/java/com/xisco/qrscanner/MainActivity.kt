@@ -1,8 +1,12 @@
 package com.xisco.qrscanner
 
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.budiyev.android.codescanner.AutoFocusMode
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.DecodeCallback
@@ -25,7 +29,7 @@ class MainActivity : AppCompatActivity() {
                         binding = ActivityMainBinding.inflate(layoutInflater)
                         val view = binding.root
                         setContentView(view)
-
+                        setupPermissions()
                         codeScannerFun()
             }
 
@@ -49,7 +53,10 @@ class MainActivity : AppCompatActivity() {
 
                                     errorCallback = ErrorCallback {
                                                 runOnUiThread {
-                                                            Log.e("MainActivity", "Camera initialization error : ${it.message}")
+                                                            Log.e(
+                                                                        "MainActivity",
+                                                                        "Camera initialization error : ${it.message}"
+                                                            )
                                                 }
                                     }
                         }
@@ -63,5 +70,43 @@ class MainActivity : AppCompatActivity() {
             override fun onPause() {
                         super.onPause()
                         codeScannerVar.releaseResources()
+            }
+
+            private fun setupPermissions() {
+                        val permission = ContextCompat.checkSelfPermission(
+                                    this,
+                                    android.Manifest.permission.CAMERA
+                        )
+                        if (permission != PackageManager.PERMISSION_GRANTED) {
+                                    makePermissionRequest()
+                        }
+            }
+
+            private fun makePermissionRequest() {
+                        ActivityCompat.requestPermissions(
+                                    this, arrayOf(android.Manifest.permission.CAMERA),
+                                    CAMERA_REQUEST_CODE
+                        )
+            }
+
+            override fun onRequestPermissionsResult(
+                        requestCode: Int,
+                        permissions: Array<out String>,
+                        grantResults: IntArray
+            ) {
+                        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+                        when (requestCode) {
+                                    CAMERA_REQUEST_CODE -> {
+                                                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                                                            Toast.makeText(
+                                                                        this,
+                                                                        "You need to allow camera permission",
+                                                                        Toast.LENGTH_SHORT
+                                                            ).show()
+                                                } else {
+                                                            // success
+                                                }
+                                    }
+                        }
             }
 }
